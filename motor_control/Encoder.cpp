@@ -1,60 +1,36 @@
 #include "Encoder.h"
 #include <util/atomic.h>
 
-// Define static variables
-Encoder* Encoder::instance = nullptr;
-volatile long Encoder::counter = 0;
-uint8_t Encoder::encoderA_pin = 0;
-uint8_t Encoder::encoderB_pin = 0;
-
-// Private constructor
-Encoder::Encoder() {}
-
-// Singleton getInstance definition
-Encoder* Encoder::getInstance() {
-    if (instance == nullptr) {
-        instance = new Encoder();
-    }
-    return instance;
-}
+Encoder::Encoder(uint8_t a_pin, uint8_t b_pin) : encoderA_pin(a_pin), encoderB_pin(b_pin), counter(0) {}
 
 // Setup method definition
-void Encoder::setup(uint8_t a_pin, uint8_t b_pin) {
-    encoderA_pin = a_pin;
-    encoderB_pin = b_pin;
-    pinMode(encoderA_pin, INPUT);
-    pinMode(encoderB_pin, INPUT);
-    attachInterrupt(digitalPinToInterrupt(encoderA_pin), isrA, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(encoderB_pin), isrB, CHANGE);
+void Encoder::setup() {
+    pinMode(this->encoderA_pin, INPUT);
+    pinMode(this->encoderB_pin, INPUT);
 }
 
-// ISR A definition
-void Encoder::isrA() {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        if (digitalRead(encoderA_pin) == digitalRead(encoderB_pin)) {
-            counter++;
-        } else {
-            counter--;
-        }
-    }
+void Encoder::registerInterruptHandlers(void (*isrA)(void), void (*isrB)(void)) {
+    isrAHandler = isrA;
+    isrBHandler = isrB;
+    attachInterrupt(digitalPinToInterrupt(this->encoderA_pin), isrAHandler, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(this->encoderB_pin), isrBHandler, CHANGE);
 }
 
-// ISR B definition
-void Encoder::isrB() {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        if (digitalRead(encoderA_pin) != digitalRead(encoderB_pin)) {
-            counter++;
-        } else {
-            counter--;
-        }
-    }
+uint8_t Encoder::getEncoderAPin()
+{
+  return this->encoderA_pin;
+}
+
+uint8_t Encoder::getEncoderBPin()
+{
+  return this->encoderA_pin;
 }
 
 // Get counter value
 int Encoder::getCounterValue() {
     int value;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        value = counter;
+        value = this->counter;
     }
     return value;
 }
@@ -62,6 +38,18 @@ int Encoder::getCounterValue() {
 // Set counter value
 void Encoder::setCounterValue(int value) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        counter = value;
+        this->counter = value;
+    }
+}
+
+void Encoder::incrementCounterValue() {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        this->counter++;
+    }
+}
+
+void Encoder::decrementCounterValue() {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        this->counter--;
     }
 }

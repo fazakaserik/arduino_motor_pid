@@ -1,29 +1,57 @@
 // Libraries
 #include <math.h>
+#include <util/atomic.h>
 
 // Custom headers
 #include "pins.h"
 #include "constants.h"
-#include "Encoder.h"
+#include "encoder.h"
 #include "motor.h"
 
 // Global variables
-Encoder* encoder = nullptr;
-Motor* motor = nullptr;
+Encoder* encoder = new Encoder(ENCODER_A_PHASE, ENCODER_B_PHASE);
+Motor* motor = new Motor(MOTOR_PLUS, MOTOR_MINUS);
 
 volatile long t_prev = 0;
 volatile int err_prev = 0;
 volatile float err_integral = 0;
 volatile int filtered_err_prev = 0;
 
+template<int id, bool negated>
+void encoderIsrHandler()
+{
+  int encoderAValue;
+  int encoderBValue;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    encoderAValue = digitalRead(encoder->getEncoderAPin());
+    encoderBValue = digitalRead(encoder->getEncoderBPin());
+  }
+  if (encoderAValue == encoderBValue) {
+    if (negated)
+    {
+      encoder->decrementCounterValue();
+    }
+    else {
+      encoder->incrementCounterValue();
+    }
+  } else {
+    if (negated)
+    {
+      encoder->incrementCounterValue();
+    }
+    else {
+      encoder->decrementCounterValue();
+    }
+  }
+}
+
 void setup() {
-  Serial.begin(19200);
+  Serial.begin(9600);
 
-  motor = Motor::getInstance();
-  motor->setup(MOTOR_PLUS, MOTOR_MINUS);
+  motor->setup();
 
-  encoder = Encoder::getInstance();
-  encoder->setup(ENCODER_A_PHASE, ENCODER_B_PHASE);
+  encoder->setup();
+  encoder->registerInterruptHandlers(encoderIsrHandler<0, false>, encoderIsrHandler<0, true>);
 }
 
 void loop() {
@@ -56,17 +84,9 @@ void loop() {
   err_prev = filtered_err;
   filtered_err_prev = filtered_err;
 
-  // Arduino Plotter Fix
-  Serial.print("Min:");
-  Serial.print(0);
-  Serial.print(",");
-  Serial.print("Max:");
-  Serial.print(2000);
-  Serial.print(",");
   // Signals
-  Serial.print("Set point:");
   Serial.print(set_point);
-  Serial.print(",");
-  Serial.print("Encoder:");
-  Serial.println(encoder->getCounterValue());
+  Serial.print(" ");
+  Serial.print(encoder->getCounterValue());
+  Serial.println();
 }

@@ -1,25 +1,11 @@
 #include "Motor.h"
 
-Motor* Motor::instance = nullptr;
+Motor::Motor(uint8_t motorPlus_pin, uint8_t motorMinus_pin) : motorPlus_pin(motorPlus_pin), motorMinus_pin(motorMinus_pin) {}
 
-Motor::Motor() {}
-
-Motor* Motor::getInstance()
+void Motor::setup()
 {
-  if (!instance)
-  {
-    instance = new Motor();
-  }
-  return instance;
-}
-
-void Motor::setup(uint8_t motorPlus_pin, uint8_t motorMinus_pin)
-{
-  pinMode(motorPlus_pin, OUTPUT);
-  pinMode(motorMinus_pin, OUTPUT);
-
-  this->motorPlus_pin = motorPlus_pin;
-  this->motorMinus_pin = motorMinus_pin;
+  pinMode(this->motorPlus_pin, OUTPUT);
+  pinMode(this->motorMinus_pin, OUTPUT);
 }
 
 void Motor::setSpeed(int speed)

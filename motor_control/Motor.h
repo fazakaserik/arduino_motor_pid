@@ -9,15 +9,11 @@
 class Motor
 {
   private:
-    static Motor* instance;
-
     uint8_t motorPlus_pin;
     uint8_t motorMinus_pin;
-
-    Motor();
   public:
-    static Motor* getInstance();
-    void setup(uint8_t motorPlus_pin, uint8_t motorMinus_pin);
+    Motor(uint8_t motorPlus_pin, uint8_t motorMinus_pin);
+    void setup();
     void setSpeed(int speed);
 };
 

@@ -5,20 +5,23 @@
 
 class Encoder {
 private:
-    static Encoder* instance;
-    static volatile long counter;
-    static uint8_t encoderA_pin;
-    static uint8_t encoderB_pin;
-
-    Encoder(); // Private constructor
+    volatile long counter;
+    uint8_t encoderA_pin;
+    uint8_t encoderB_pin;
+    void (*isrAHandler)(void); // Function pointer for ISR A handler
+    void (*isrBHandler)(void); // Function pointer for ISR B handler
 
 public:
-    static Encoder* getInstance();
-    void setup(uint8_t encoderA_pin, uint8_t encoderB_pin);
+    Encoder(uint8_t encoderA_pin, uint8_t encoderB_pin); // Constructor with pin setup
+
+    void setup();
+    void registerInterruptHandlers(void (*isrA)(void), void (*isrB)(void));
+    uint8_t Encoder::getEncoderAPin();
+    uint8_t Encoder::getEncoderBPin();
     int getCounterValue();
     void setCounterValue(int value);
-    static void isrA();
-    static void isrB();
+    void incrementCounterValue();
+    void decrementCounterValue();
 };
 
 #endif // ENCODER_H
