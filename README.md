@@ -12,3 +12,6 @@ This Arduino project implements a PID (Proportional-Integral-Derivative) control
 - Rotary Encoder
 - Potentiometers for PID tuning (K_P, K_I, K_D)
 - Power Supply
+
+## Analysis
+I recommend using [SerialAnalyzer](https://github.com/curiores/SerialAnalyzer/tree/main) to analyze signals.
